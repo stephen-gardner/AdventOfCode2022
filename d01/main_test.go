@@ -8,7 +8,7 @@ func TestFindLargestLoad(t *testing.T) {
 		"1", "2", "",
 		"3", "4", "", // Largest
 	}
-	if res := findLargestLoad(lines); res != expected {
+	if res := part1(lines); res != expected {
 		t.Log("Input:", lines)
 		t.Fatalf("%d != %d (expected)", res, expected)
 	}
@@ -25,7 +25,7 @@ func TestFindLargestLoadOfTopThree(t *testing.T) {
 		"1", "",
 		"1", "1", "1", "",
 	}
-	if res := findLargestLoadOfTopThree(lines); res != expected {
+	if res := part2(lines); res != expected {
 		t.Log("Input:", lines)
 		t.Fatalf("%d != %d (expected)", res, expected)
 	}

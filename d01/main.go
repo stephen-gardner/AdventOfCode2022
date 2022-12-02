@@ -7,8 +7,7 @@ import (
 	"strings"
 )
 
-// Part 1
-func findLargestLoad(lines []string) int {
+func part1(lines []string) int {
 	var curr, largest int
 	for _, line := range lines {
 		if line == "" {
@@ -24,8 +23,7 @@ func findLargestLoad(lines []string) int {
 	return largest
 }
 
-// Part 2
-func findLargestLoadOfTopThree(lines []string) int {
+func part2(lines []string) int {
 	var curr, l1, l2, l3 int
 	for _, line := range lines {
 		if line == "" {
@@ -50,6 +48,6 @@ func findLargestLoadOfTopThree(lines []string) int {
 func main() {
 	data, _ := os.ReadFile("input")
 	lines := strings.Split(string(data), "\n")
-	fmt.Println("Largest load:", findLargestLoad(lines))
-	fmt.Println("Largest load of top three:", findLargestLoadOfTopThree(lines))
+	fmt.Println("Part 1:", part1(lines)) // Expected: 67633
+	fmt.Println("Part 2:", part2(lines)) // Expected: 199628
 }
