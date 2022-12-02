@@ -60,7 +60,7 @@ func part2(lines []string) int {
 	// 	Rock     = Play to lose
 	// 	Paper    = Play to draw
 	// 	Scissors = Play to win
-	playbook := [][]int{
+	playbook := [][]byte{
 		rock: {
 			rock:     scissors,
 			paper:    rock,
@@ -83,7 +83,7 @@ func part2(lines []string) int {
 			continue
 		}
 		opponent, me := line[0], line[2]
-		me = byte(playbook[opponent][me])
+		me = playbook[opponent][me]
 		score += pointsHand[me]
 		score += pointsOutcome[opponent][me]
 	}
