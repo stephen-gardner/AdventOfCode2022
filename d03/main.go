@@ -40,7 +40,7 @@ func part2(lines []string) int {
 		for i := range p1 {
 			if p1[i] > 0 && p2[i] > 0 && p3[i] > 0 {
 				sum += 1 + i
-				continue
+				break
 			}
 		}
 	}
