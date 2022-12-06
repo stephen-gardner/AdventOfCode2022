@@ -40,6 +40,6 @@ func part2(data string) int {
 func main() {
 	data, _ := os.ReadFile("input")
 	lines := strings.Split(string(data), "\n")
-	fmt.Println(part1(lines[0])) // Expected: 1623
-	fmt.Println(part2(lines[0])) // Expected: 3774
+	fmt.Println("Part 1:", part1(lines[0])) // Expected: 1623
+	fmt.Println("Part 2:", part2(lines[0])) // Expected: 3774
 }
