@@ -20,9 +20,10 @@ const (
 	opAddx = iota
 	opNoop
 
-	canvasHeight = 6
-	canvasWidth  = 40
-	spriteWidth  = 3
+	canvasHeight    = 6
+	canvasWidth     = 40
+	spriteWidth     = 3
+	spriteWidthHalf = spriteWidth / 2
 )
 
 func getSchedule(lines []string) []Instr {
@@ -55,9 +56,10 @@ func getCanvas() Canvas {
 }
 
 func (canvas Canvas) Draw(cycle, x int) {
-	col := cycle % 40
-	if uint(x+spriteWidth-col-1) < spriteWidth {
-		canvas[cycle/40][col] = '#'
+	col := cycle % canvasWidth
+	if uint(x-(col-spriteWidthHalf)) < spriteWidth {
+		row := cycle / canvasWidth
+		canvas[row][col] = '#'
 	}
 }
 
@@ -79,7 +81,7 @@ func render(canvas Canvas, schedule []Instr) int {
 	sum := 0
 	x := 1
 	for cycle := 1; len(schedule) > 0; cycle++ {
-		canvas.Draw(cycle, x)
+		canvas.Draw(cycle-1, x)
 		if breakpoint[cycle] {
 			sum += cycle * x
 		}
