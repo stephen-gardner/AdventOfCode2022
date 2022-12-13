@@ -16,41 +16,36 @@ const (
 func getPacket(raw string) []interface{} {
 	raw = raw[1 : len(raw)-1]
 	packet := []interface{}{}
-	i := 0
-	for i < len(raw) {
+	for i, end := 0, 1; i < len(raw); end = i + 1 {
+		var ele interface{}
 		if raw[i] == '[' {
-			end := i + 1
-			open := 1
-			for open > 0 {
+			for open := 1; open > 0; end++ {
 				switch raw[end] {
 				case '[':
 					open++
 				case ']':
 					open--
 				}
-				end++
 			}
-			subList := getPacket(raw[i:end])
-			packet = append(packet, subList)
-			i = end + 1
+			ele = getPacket(raw[i:end])
 		} else {
-			end := i + 1
 			for end < len(raw) && raw[end] != ',' {
 				end++
 			}
-			n, _ := strconv.Atoi(raw[i:end])
-			packet = append(packet, n)
-			i = end + 1
+			ele, _ = strconv.Atoi(raw[i:end])
 		}
+		packet = append(packet, ele)
+		i = end + 1
 	}
 	return packet
 }
 
 func getAllPackets(lines []string) [][]interface{} {
 	packets := [][]interface{}{}
-	for i := 0; i < len(lines); i += 3 {
-		packets = append(packets, getPacket(lines[i]))
-		packets = append(packets, getPacket(lines[i+1]))
+	for _, raw := range lines {
+		if raw != "" {
+			packets = append(packets, getPacket(raw))
+		}
 	}
 	return packets
 }
@@ -59,10 +54,7 @@ func isOrdered(left, right []interface{}) int {
 	i := 0
 	for {
 		if i == len(left) {
-			if i == len(right) {
-				return 0
-			}
-			return 1
+			return len(right) - i
 		}
 		if i == len(right) {
 			return -1
@@ -70,11 +62,8 @@ func isOrdered(left, right []interface{}) int {
 		lValue, intLeft := left[i].(int)
 		rValue, intRight := right[i].(int)
 		if intLeft && intRight {
-			if lValue < rValue {
-				return 1
-			}
-			if lValue > rValue {
-				return -1
+			if res := rValue - lValue; res != 0 {
+				return res
 			}
 		} else {
 			var subLeft, subRight []interface{}
@@ -99,12 +88,9 @@ func isOrdered(left, right []interface{}) int {
 func part1(lines []string) int {
 	sum := 0
 	packets := getAllPackets(lines)
-	for i := 0; i+1 < len(packets); i += 2 {
-		left := packets[i]
-		right := packets[i+1]
-		pairIndex := ((i + 1) / 2) + 1
-		if isOrdered(left, right) >= 0 {
-			sum += pairIndex
+	for i := 1; i < len(packets); i += 2 {
+		if isOrdered(packets[i-1], packets[i]) >= 0 {
+			sum += 1 + (i / 2)
 		}
 	}
 	return sum
@@ -121,7 +107,7 @@ func part2(lines []string) int {
 	for i, p := range packets {
 		pStr := fmt.Sprint(p)
 		if pStr == dividerRaw1 || pStr == dividerRaw2 {
-			key *= i + 1
+			key *= 1 + i
 		}
 	}
 	return key
