@@ -26,7 +26,7 @@ type (
 
 const (
 	initialSandDropX = 500
-	expansionWidth   = 20
+	widenSideWidth   = 10
 )
 
 func min(a, b int) int {
@@ -62,26 +62,21 @@ func (cave *Cave) setupBoundaries(rocks []Rock) {
 
 func (cave *Cave) setupRocks(rocks []Rock) {
 	for _, r := range rocks {
-		startY, startX := r.start[0], r.start[1]
-		endY, endX := r.end[0], r.end[1]
-		deltaY, deltaX := 0, 0
-		if startY < endY {
-			deltaY = 1
-		} else if startY > endY {
-			deltaY = -1
+		startY, endY := r.start[0], r.end[0]
+		startX, endX := r.start[1], r.end[1]
+		if startY > endY {
+			startY, endY = endY, startY
 		}
-		if startX < endX {
-			deltaX = 1
-		} else if startX > endX {
-			deltaX = -1
+		if startX > endX {
+			startX, endX = endX, startX
 		}
-		for startY != endY || startX != endX {
+		for startY < endY || startX < endX {
 			cave.grid[startY][startX] = '#'
-			if startY != endY {
-				startY += deltaY
+			if startY < endY {
+				startY++
 			}
-			if startX != endX {
-				startX += deltaX
+			if startX < endX {
+				startX++
 			}
 		}
 		cave.grid[endY][endX] = '#'
@@ -108,20 +103,19 @@ func (cave *Cave) setupGrid(rocks []Rock, hasFloor bool) {
 }
 
 func (cave *Cave) widen(x *int) {
-	sideWidth := expansionWidth / 2
-	cave.maxX += expansionWidth
-	cave.dropX += sideWidth
-	*x += sideWidth
+	cave.maxX += 2 * widenSideWidth
+	cave.dropX += widenSideWidth
+	*x += widenSideWidth
 	for y := range cave.grid {
 		expanded := make([]byte, 1+cave.maxX)
-		for i := 0; i < sideWidth; i++ {
+		for i := 0; i < widenSideWidth; i++ {
 			expanded[i] = '.'
 			expanded[cave.maxX-i] = '.'
 		}
-		copy(expanded[sideWidth:len(expanded)-sideWidth], cave.grid[y])
+		copy(expanded[widenSideWidth:len(expanded)-widenSideWidth], cave.grid[y])
 		cave.grid[y] = expanded
 	}
-	for i := 0; i < sideWidth; i++ {
+	for i := 0; i < widenSideWidth; i++ {
 		cave.grid[cave.maxY][i] = '#'
 		cave.grid[cave.maxY][cave.maxX-i] = '#'
 	}
