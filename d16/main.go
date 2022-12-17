@@ -81,10 +81,10 @@ func getValves(lines []string) map[string]*Valve {
 }
 
 func part1(valves map[string]*Valve) int {
+	best := 0
 	stack := []Volcano{{
 		me: State{valves["AA"], 30},
 	}}
-	best := 0
 	visited := map[[2]int]bool{}
 	for len(stack) > 0 {
 		curr := stack[len(stack)-1]
@@ -97,9 +97,9 @@ func part1(valves map[string]*Valve) int {
 		prevStackSize := len(stack)
 		state := curr.me
 		for next, dist := range state.node.connected {
-			if key[1]&next.id == 0 && dist < state.mins {
+			if key[1]&next.id == 0 {
 				timeLeft := state.mins - dist - 1
-				if timeLeft > 0 {
+				if timeLeft >= 0 {
 					curr.me = State{node: next, mins: timeLeft}
 					curr.released = key[0] + (timeLeft * next.flow)
 					curr.opened = key[1] | next.id
@@ -115,11 +115,11 @@ func part1(valves map[string]*Valve) int {
 }
 
 func part2(valves map[string]*Valve) int {
+	best := 0
 	stack := []Volcano{{
 		me:     State{valves["AA"], 26},
 		helper: State{valves["AA"], 26},
 	}}
-	best := 0
 	visited := map[[2]int]bool{}
 	for len(stack) > 0 {
 		curr := stack[len(stack)-1]
@@ -137,9 +137,9 @@ func part2(valves map[string]*Valve) int {
 		}
 		state := *target
 		for next, dist := range state.node.connected {
-			if key[1]&next.id == 0 && dist < state.mins {
+			if key[1]&next.id == 0 {
 				timeLeft := state.mins - dist - 1
-				if timeLeft > 0 {
+				if timeLeft >= 0 {
 					*target = State{node: next, mins: timeLeft}
 					curr.released = key[0] + (timeLeft * next.flow)
 					curr.opened = key[1] | next.id
