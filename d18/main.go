@@ -82,7 +82,7 @@ func part2(lines []string) int {
 		minY, maxY = min(minY, c.y-pad), max(maxY, c.y+pad)
 		minZ, maxZ = min(minZ, c.x-pad), max(maxZ, c.x+pad)
 	}
-	total := 0
+	faces := 0
 	queue := [][6]int{{minX, minY, minZ}}
 	visited := map[[6]int]bool{}
 	for len(queue) > 0 {
@@ -98,7 +98,7 @@ func part2(lines []string) int {
 			continue
 		}
 		if _, exists := cubes[[3]int{curr[0], curr[1], curr[2]}]; exists {
-			total++
+			faces++
 			continue
 		}
 		for _, dir := range dirs {
@@ -112,7 +112,7 @@ func part2(lines []string) int {
 			})
 		}
 	}
-	return total
+	return faces
 }
 
 func main() {

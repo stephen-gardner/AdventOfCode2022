@@ -17,13 +17,13 @@ type (
 		windIdx     int
 	}
 	CycleData struct {
-		key         [2 + chamberWidth]int
-		height      int
-		heightDelta int
-		length      int
-		lengthDelta int
-		complete    bool
-		started     bool
+		key               [2 + chamberWidth]int
+		blocksPlaced      int
+		blocksPlacedDelta int
+		towerHeight       int
+		towerHeightDelta  int
+		complete          bool
+		started           bool
 	}
 	Rock struct {
 		data []string
@@ -199,6 +199,7 @@ func (ch *Chamber) rockSettle(originY, originX int) {
 func (ch *Chamber) updateTop() {
 	ch.topY = len(ch.data)
 	for x := range ch.data[0] {
+		ch.top[x] = len(ch.data)
 		for y := range ch.data {
 			if ch.data[y][x] == '#' {
 				ch.top[x] = y
@@ -207,7 +208,6 @@ func (ch *Chamber) updateTop() {
 				}
 				break
 			}
-			ch.top[x] = len(ch.data)
 		}
 	}
 	ch.towerHeight = len(ch.data) - ch.topY
@@ -216,10 +216,10 @@ func (ch *Chamber) updateTop() {
 func simulate(lines []string, times int) (*Chamber, *CycleData) {
 	ch := newChamber(lines[0])
 	cycle := &CycleData{}
-	initialHeight := 0
-	initialLength := 0
+	initialTowerHeight := 0
+	initialBlocksPlaced := 0
 	visited := map[[2 + chamberWidth]int]int{}
-	for i := 0; i < times; i++ {
+	for block := 1; block <= times; block++ {
 		key := [2 + chamberWidth]int{ch.rockIdx, ch.windIdx}
 		ch.rockDrop()
 		if cycle.complete {
@@ -232,10 +232,10 @@ func simulate(lines []string, times int) (*Chamber, *CycleData) {
 			if _, exists := visited[key]; exists {
 				cycle.key = key
 				cycle.started = true
-				initialHeight = ch.towerHeight
-				initialLength = i + 1
+				initialTowerHeight = ch.towerHeight
+				initialBlocksPlaced = block
 			}
-			visited[key] = i + 1
+			visited[key] = block
 			continue
 		}
 		sameKey := true
@@ -246,10 +246,10 @@ func simulate(lines []string, times int) (*Chamber, *CycleData) {
 			}
 		}
 		if sameKey {
-			cycle.height = ch.towerHeight
-			cycle.heightDelta = ch.towerHeight - initialHeight
-			cycle.length = i + 1
-			cycle.lengthDelta = (i + 1) - initialLength
+			cycle.towerHeight = ch.towerHeight
+			cycle.towerHeightDelta = ch.towerHeight - initialTowerHeight
+			cycle.blocksPlaced = block
+			cycle.blocksPlacedDelta = block - initialBlocksPlaced
 			cycle.complete = true
 		}
 	}
@@ -263,15 +263,12 @@ func part1(lines []string) int {
 
 func part2(lines []string) int {
 	_, cycle := simulate(lines, 4000)
-	height := cycle.height
-	blocksPlaced := cycle.length
-	for blocksPlaced+cycle.lengthDelta <= targetBlocksPlaced {
-		height += cycle.heightDelta
-		blocksPlaced += cycle.lengthDelta
-	}
+	nCycles := (targetBlocksPlaced - cycle.blocksPlaced) / cycle.blocksPlacedDelta
+	height := cycle.towerHeight + (nCycles * cycle.towerHeightDelta)
+	blocksPlaced := cycle.blocksPlaced + (nCycles * cycle.blocksPlacedDelta)
 	blocksNeeded := targetBlocksPlaced - blocksPlaced
-	ch, _ := simulate(lines, cycle.length+blocksNeeded)
-	return height + (ch.towerHeight - cycle.height)
+	ch, _ := simulate(lines, cycle.blocksPlaced+blocksNeeded)
+	return height + (ch.towerHeight - cycle.towerHeight)
 }
 
 func main() {
