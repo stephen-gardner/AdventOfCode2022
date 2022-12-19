@@ -60,7 +60,7 @@ func part1(lines []string) int {
 	for _, c := range cubes {
 		for _, dir := range dirs {
 			key := [3]int{c.x + dir[0], c.y + dir[1], c.z + dir[2]}
-			if _, exists := cubes[key]; exists {
+			if _, isCube := cubes[key]; isCube {
 				faces--
 			}
 		}
@@ -97,19 +97,23 @@ func part2(lines []string) int {
 			curr[2] < minZ || curr[2] > maxZ {
 			continue
 		}
-		if _, exists := cubes[[3]int{curr[0], curr[1], curr[2]}]; exists {
+		if _, isCube := cubes[[3]int{curr[0], curr[1], curr[2]}]; isCube {
 			faces++
 			continue
 		}
 		for _, dir := range dirs {
-			queue = append(queue, [6]int{
+			next := [6]int{
 				curr[0] + dir[0],
 				curr[1] + dir[1],
 				curr[2] + dir[2],
-				dir[0],
-				dir[1],
-				dir[2],
-			})
+			}
+			// No need to visit non-cubes from multiple directions
+			if _, isCube := cubes[[3]int{next[0], next[1], next[2]}]; isCube {
+				next[3] = dir[0]
+				next[4] = dir[1]
+				next[5] = dir[2]
+			}
+			queue = append(queue, next)
 		}
 	}
 	return faces
