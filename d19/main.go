@@ -106,8 +106,8 @@ func getBlueprints(lines []string) Blueprints {
 		setPrices(data[2], &bp.prices[BotObsidian][Ore], &bp.prices[BotObsidian][Clay])
 		setPrices(data[3], &bp.prices[BotGeode][Ore], &bp.prices[BotGeode][Obsidian])
 		for _, bot := range bp.prices {
-			for i := range bot {
-				bp.maxCosts[i] = max(bp.maxCosts[i], bot[i])
+			for botType := range bot {
+				bp.maxCosts[botType] = max(bp.maxCosts[botType], bot[botType])
 			}
 		}
 		blueprints[i] = bp
@@ -145,8 +145,8 @@ func mineGeode(bp *Blueprint, minutes int) {
 			continue
 		}
 		f.minutes--
-		for i := range f.minerals {
-			f.minerals[i] += f.bots[i]
+		for mineralType := range f.minerals {
+			f.minerals[mineralType] += f.bots[mineralType]
 		}
 		// Abandon path where it's impossible to mine more geodes than previously achieved
 		if getPotential(f.minerals[Geode], f.bots[BotGeode], f.minutes) < bp.geodesMined {
@@ -158,19 +158,19 @@ func mineGeode(bp *Blueprint, minutes int) {
 			f.created = -1
 		}
 		stack = append(stack, f)
-		for i := BotGeode; i >= 0; i-- {
+		for botType := BotGeode; botType >= 0; botType-- {
 			// Don't attempt to create bots that will mine more resources than
 			//	could be possibly used by the factory
-			if bp.maxCosts[i] > 0 && f.bots[i] >= bp.maxCosts[i] {
+			if bp.maxCosts[botType] > 0 && f.bots[botType] >= bp.maxCosts[botType] {
 				continue
 			}
 			affordable := true
-			skipped := lastCreated != i
-			for j := range f.minerals {
-				if f.minerals[j] < bp.prices[i][j] {
+			skipped := lastCreated != botType
+			for mineralType := range f.minerals {
+				if f.minerals[mineralType] < bp.prices[botType][mineralType] {
 					affordable = false
 				}
-				if f.minerals[j]-f.bots[j] < bp.prices[i][j] {
+				if f.minerals[mineralType]-f.bots[mineralType] < bp.prices[botType][mineralType] {
 					skipped = false
 				}
 			}
@@ -178,15 +178,15 @@ func mineGeode(bp *Blueprint, minutes int) {
 			//	it now doesn't make sense
 			if affordable && !skipped {
 				next := f
-				next.created = i
-				for j := range bp.prices[i] {
-					next.minerals[j] -= bp.prices[i][j]
+				next.created = botType
+				for mineralType := range bp.prices[botType] {
+					next.minerals[mineralType] -= bp.prices[botType][mineralType]
 				}
 				stack = append(stack, next)
 				// If we create a geode bot, then there's no need to explore
 				//	creating anything else, as other paths will ensure a path
 				//	where full production can occur
-				if i == BotGeode {
+				if botType == BotGeode {
 					break
 				}
 			}
