@@ -112,7 +112,6 @@ func getBlueprints(lines []string) Blueprints {
 		}
 		blueprints[i] = bp
 	}
-
 	return blueprints
 }
 
@@ -136,18 +135,12 @@ func mineGeode(bp *Blueprint, minutes int) {
 		created: -1,
 	}
 	stack := []Factory{f}
-	visited := map[Factory]bool{}
 	for len(stack) > 0 {
 		f := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
-		if visited[f] {
-			continue
-		}
-		visited[f] = true
 		if f.minutes == 0 {
 			if f.minerals[Geode] > bp.geodesMined {
 				bp.geodesMined = f.minerals[Geode]
-				fmt.Printf(" -> Blueprint %d: New High = %d\n", bp.id, bp.geodesMined)
 			}
 			continue
 		}
@@ -155,32 +148,47 @@ func mineGeode(bp *Blueprint, minutes int) {
 		for i := range f.minerals {
 			f.minerals[i] += f.bots[i]
 		}
+		// Abandon path where it's impossible to mine more geodes than previously achieved
 		if getPotential(f.minerals[Geode], f.bots[BotGeode], f.minutes) < bp.geodesMined {
 			continue
 		}
+		lastCreated := f.created
 		if f.created != -1 {
 			f.bots[f.created]++
+			f.created = -1
 		}
-		f.created = -1
 		stack = append(stack, f)
-		for i := range f.bots {
+		for i := BotGeode; i >= 0; i-- {
+			// Don't attempt to create bots that will mine more resources than
+			//	could be possibly used by the factory
 			if bp.maxCosts[i] > 0 && f.bots[i] >= bp.maxCosts[i] {
 				continue
 			}
 			affordable := true
+			skipped := lastCreated != i
 			for j := range f.minerals {
 				if f.minerals[j] < bp.prices[i][j] {
 					affordable = false
-					break
+				}
+				if f.minerals[j]-f.bots[j] < bp.prices[i][j] {
+					skipped = false
 				}
 			}
-			if affordable {
+			// If current bot was skipped in the previous cycle, then creating
+			//	it now doesn't make sense
+			if affordable && !skipped {
 				next := f
 				next.created = i
 				for j := range bp.prices[i] {
 					next.minerals[j] -= bp.prices[i][j]
 				}
 				stack = append(stack, next)
+				// If we create a geode bot, then there's no need to explore
+				//	creating anything else, as other paths will ensure a path
+				//	where full production can occur
+				if i == BotGeode {
+					break
+				}
 			}
 		}
 	}
@@ -191,7 +199,10 @@ func part1(blueprints Blueprints) int {
 	for _, bp := range blueprints {
 		mineGeode(bp, 24)
 		res += bp.id * bp.geodesMined
-		fmt.Printf("Blueprint %d: Quality = %d (mined: %d)\n", bp.id, bp.id*bp.geodesMined, bp.geodesMined)
+		fmt.Printf(
+			" > Blueprint %d quality: %d (mined: %d)\n",
+			bp.id, bp.id*bp.geodesMined, bp.geodesMined,
+		)
 	}
 	return res
 }
@@ -201,7 +212,7 @@ func part2(blueprints Blueprints) int {
 	for _, bp := range blueprints {
 		mineGeode(bp, 32)
 		res *= bp.geodesMined
-		fmt.Printf("Blueprint %d: Mined = %d\n", bp.id, bp.geodesMined)
+		fmt.Printf(" > Blueprint %d Mined: %d\n", bp.id, bp.geodesMined)
 	}
 	return res
 }
