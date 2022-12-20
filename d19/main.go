@@ -200,7 +200,7 @@ func part1(blueprints Blueprints) int {
 		mineGeode(bp, 24)
 		res += bp.id * bp.geodesMined
 		fmt.Printf(
-			" > Blueprint %d quality: %d (mined: %d)\n",
+			" > Blueprint %2d: quality is %3d (mined: %2d)\n",
 			bp.id, bp.id*bp.geodesMined, bp.geodesMined,
 		)
 	}
@@ -212,7 +212,7 @@ func part2(blueprints Blueprints) int {
 	for _, bp := range blueprints {
 		mineGeode(bp, 32)
 		res *= bp.geodesMined
-		fmt.Printf(" > Blueprint %d Mined: %d\n", bp.id, bp.geodesMined)
+		fmt.Printf(" > Blueprint %2d: mined %2d\n", bp.id, bp.geodesMined)
 	}
 	return res
 }
