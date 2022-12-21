@@ -64,13 +64,13 @@ func calculate(monkeys map[string]*Monkey, curr string) int {
 	return m.value
 }
 
-func reverseCalc(monkeys map[string]*Monkey, curr string) int {
+func reverseCalc(res *int, monkeys map[string]*Monkey, curr string) {
 	m := monkeys[curr]
 	if m.op == NOP {
 		if curr == "humn" {
-			return m.value
+			*res = m.value
 		}
-		return -1
+		return
 	}
 	lhs := monkeys[m.lhs]
 	rhs := monkeys[m.rhs]
@@ -84,13 +84,8 @@ func reverseCalc(monkeys map[string]*Monkey, curr string) int {
 	case '/':
 		lhs.value, rhs.value = m.value*rhs.value, lhs.value/m.value
 	}
-	if res := reverseCalc(monkeys, m.lhs); res != -1 {
-		return res
-	}
-	if res := reverseCalc(monkeys, m.rhs); res != -1 {
-		return res
-	}
-	return -1
+	reverseCalc(res, monkeys, m.lhs)
+	reverseCalc(res, monkeys, m.rhs)
 }
 
 func verifyEqual(lines []string, n int) bool {
@@ -112,7 +107,9 @@ func part2(lines []string) int {
 	// Some inputs may require this operation on rhs instead
 	monkeys[root.lhs].value = monkeys[root.rhs].value
 	monkeys["humn"].op = NOP
-	return reverseCalc(monkeys, root.lhs)
+	res := 0
+	reverseCalc(&res, monkeys, root.lhs)
+	return res
 }
 
 func main() {
