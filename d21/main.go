@@ -10,105 +10,104 @@ import (
 const NOP = 0
 
 type Monkey struct {
+	label string
+	lhs   *Monkey
+	rhs   *Monkey
 	value int
 	op    byte
-	lhs   string
-	rhs   string
 }
 
 func getMonkeys(lines []string) map[string]*Monkey {
 	monkeys := map[string]*Monkey{}
+	argsMap := map[string][2]string{}
 	for _, line := range lines {
 		data := strings.Split(line, ": ")
-		m := &Monkey{}
+		m := &Monkey{label: data[0]}
 		if n, err := strconv.Atoi(data[1]); err == nil {
 			m.value = n
 			m.op = NOP
 		} else {
 			calc := strings.Split(data[1], " ")
 			m.op = calc[1][0]
-			m.lhs = calc[0]
-			m.rhs = calc[2]
+			argsMap[m.label] = [2]string{calc[0], calc[2]}
 		}
-		monkeys[data[0]] = m
+		monkeys[m.label] = m
+	}
+	for label, args := range argsMap {
+		m := monkeys[label]
+		m.lhs = monkeys[args[0]]
+		m.rhs = monkeys[args[1]]
 	}
 	return monkeys
 }
 
-func calculate(monkeys map[string]*Monkey, curr string) int {
-	m := monkeys[curr]
-	lhs := monkeys[m.lhs]
-	if lhs.op != NOP {
-		calculate(monkeys, m.lhs)
+func (m *Monkey) calculate() int {
+	if m == nil {
+		return 0
 	}
-	rhs := monkeys[m.rhs]
-	if rhs.op != NOP {
-		calculate(monkeys, m.rhs)
-	}
+	m.lhs.calculate()
+	m.rhs.calculate()
 	switch m.op {
 	case '=':
-		if lhs.value == rhs.value {
+		if m.lhs.value == m.rhs.value {
 			return 1
-		} else {
-			return 0
 		}
+		return 0
 	case '+':
-		m.value = lhs.value + rhs.value
+		m.value = m.lhs.value + m.rhs.value
 	case '-':
-		m.value = lhs.value - rhs.value
+		m.value = m.lhs.value - m.rhs.value
 	case '*':
-		m.value = lhs.value * rhs.value
+		m.value = m.lhs.value * m.rhs.value
 	case '/':
-		m.value = lhs.value / rhs.value
+		m.value = m.lhs.value / m.rhs.value
 	}
 	return m.value
 }
 
-func reverseCalc(res *int, monkeys map[string]*Monkey, curr string) {
-	m := monkeys[curr]
+func (m *Monkey) reverseCalc(res *int) {
 	if m.op == NOP {
-		if curr == "humn" {
+		if m.label == "humn" {
 			*res = m.value
 		}
 		return
 	}
-	lhs := monkeys[m.lhs]
-	rhs := monkeys[m.rhs]
 	switch m.op {
 	case '+':
-		lhs.value, rhs.value = m.value-rhs.value, m.value-lhs.value
+		m.lhs.value, m.rhs.value = m.value-m.rhs.value, m.value-m.lhs.value
 	case '-':
-		lhs.value, rhs.value = m.value+rhs.value, lhs.value-m.value
+		m.lhs.value, m.rhs.value = m.value+m.rhs.value, m.lhs.value-m.value
 	case '*':
-		lhs.value, rhs.value = m.value/rhs.value, m.value/lhs.value
+		m.lhs.value, m.rhs.value = m.value/m.rhs.value, m.value/m.lhs.value
 	case '/':
-		lhs.value, rhs.value = m.value*rhs.value, lhs.value/m.value
+		m.lhs.value, m.rhs.value = m.value*m.rhs.value, m.lhs.value/m.value
 	}
-	reverseCalc(res, monkeys, m.lhs)
-	reverseCalc(res, monkeys, m.rhs)
+	m.lhs.reverseCalc(res)
+	m.rhs.reverseCalc(res)
 }
 
-func verifyEqual(lines []string, n int) bool {
+func verifyHumanInput(lines []string, n int) bool {
 	monkeys := getMonkeys(lines)
 	monkeys["root"].op = '='
 	monkeys["humn"].op = NOP
 	monkeys["humn"].value = n
-	return calculate(monkeys, "root") == 1
+	return monkeys["root"].calculate() == 1
 }
 
 func part1(lines []string) int {
-	return calculate(getMonkeys(lines), "root")
+	monkeys := getMonkeys(lines)
+	return monkeys["root"].calculate()
 }
 
 func part2(lines []string) int {
-	monkeys := getMonkeys(lines)
-	calculate(monkeys, "root")
-	root := monkeys["root"]
-	// Some inputs may require this operation on rhs instead
-	monkeys[root.lhs].value = monkeys[root.rhs].value
-	monkeys["humn"].op = NOP
 	res := 0
-	reverseCalc(&res, monkeys, root.lhs)
+	monkeys := getMonkeys(lines)
+	root := monkeys["root"]
+	root.calculate()
+	monkeys["humn"].op = NOP
+	// Some inputs may require this operation on rhs instead
+	root.lhs.value = root.rhs.value
+	root.lhs.reverseCalc(&res)
 	return res
 }
 

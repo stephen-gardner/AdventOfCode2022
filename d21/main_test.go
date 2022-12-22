@@ -23,6 +23,7 @@ func TestPart1(t *testing.T) {
 func TestPart2(t *testing.T) {
 	expected := 301
 	if res := part2(testData); res != expected {
+		t.Logf("%d results in equal args at root: %v", res, verifyHumanInput(testData, res))
 		t.Fatalf("%d != %d (expected)", res, expected)
 	}
 }
