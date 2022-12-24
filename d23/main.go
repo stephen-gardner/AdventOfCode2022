@@ -56,20 +56,9 @@ func (f *Field) diffuseElves(rounds int) int {
 		pos [2]int
 		ok  bool
 	}
-	findElves := func(grid [][]byte) map[[2]int]bool {
-		elves := map[[2]int]bool{}
-		for y := range grid {
-			for x := range grid[y] {
-				if grid[y][x] == '#' {
-					elves[[2]int{y, x}] = true
-				}
-			}
-		}
-		return elves
-	}
 	for rounds == -1 || f.round <= rounds {
 		f.padGrid()
-		elves := findElves(f.grid)
+		elves := f.getElves()
 		proposals := map[[2]int][][2]int{}
 		for elf := range elves {
 			y, x := elf[0], elf[1]
@@ -152,6 +141,18 @@ func (f *Field) getElfBounds() (minY, maxY, minX, maxX int) {
 	return
 }
 
+func (f *Field) getElves() map[[2]int]bool {
+	elves := map[[2]int]bool{}
+	for y := range f.grid {
+		for x := range f.grid[y] {
+			if f.grid[y][x] == '#' {
+				elves[[2]int{y, x}] = true
+			}
+		}
+	}
+	return elves
+}
+
 func (f *Field) padGrid() {
 	minY, maxY, minX, maxX := f.getElfBounds()
 	padTop := minY == 0
@@ -187,7 +188,7 @@ func (f *Field) padGrid() {
 
 func (f *Field) print() {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintln("End of round", f.round))
+	sb.WriteString(fmt.Sprintf("== End of Round %d ==\n", f.round-1))
 	for _, row := range f.grid {
 		sb.WriteString(string(row))
 		sb.WriteByte('\n')
